@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>게시판</title>
+    <script src="https://kit.fontawesome.com/2d323a629b.js" crossorigin="anonymous"></script>
+    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro&display=swap" rel="stylesheet"/>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <!-- JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+            crossorigin="anonymous"></script>
+</head>
+<body>
+<div class="jumbotron" style="text-align: center; background-color: #FFFFFF;">
+    <h1>1주차 과제<br>게시물과 댓글 CRUD</h1>
+</div>
+<div style="text-align: right">
+<button style="margin-right: 60px; margin-bottom: 10px" type="button" class="btn btn-primary" onclick = "location.href = '/write' ">글쓰기</button>
+</div>
+<table class="table table-hover">
+    <thead>
+    <tr>
+        <th scope="col" class="text-center">제목</th>
+        <th scope="col" class="text-center">작성자</th>
+        <th scope="col" class="text-center">작성시간</th>
+        <th scope="col" class="text-center">삭제</th>
+    </tr>
+    </thead>
+    <tbody id="names-q1">
+
+    </tbody>
+</table>
+</body>
+<script>
+    $(document).ready(function () {
+        // if (document.location.protocol === 'https:') {
+        //     document.location.href = document.location.href.replace('https:', 'http:');
+        // }
+        $.ajax({
+            type: "GET",
+            url: "/api/posting",
+            data: {},
+            success: function (response) {
+                for (let i = 0; i < response.length; i++) {
+                    let postingSeq = response[i]["postingSeq"];
+                    let title = response[i]["title"];
+                    let username = response[i]["username"];
+                    let contents = response[i]["contents"];
+                    let modifiedAt = response[i]["modifiedAt"];
+                    let temp = `<tr>
+                                    <!-- 작성자, 작성일, 조회수 -->
+                                    <td style="width: 30%; text-align: center;">
+                                        <a class="text-reset" href="/details/${postingSeq}">${title}</a>
+                                    </td>
+                                    <td style="width: 20%" class="text-center">${username}</td>
+                                    <td style="width: 30%" class="text-center">${modifiedAt}</td>
+                                    <td style="text-align: center"> <button style="margin-right: 10px" type="button" class="btn btn-primary" onclick="updateOne(${postingSeq});">수정</button><button type="button" class="btn btn-danger" onclick="deleteOne(${postingSeq});">삭제</button></td>
+                                </tr>`
+                    $('#names-q1').append(temp);
+                }
+            }
+        })
+    });
+
+    function deleteOne(postingSeq){
+        $.ajax({
+            type     : "Delete",
+            url      : "/api/posting/"+postingSeq,
+            contentType: 'application/json',
+            success  : function(res) {
+                location.reload();
+            }
+        });
+    }
+
+    function updateOne(postingSeq){
+        location.href='/edit?postingSeq='+postingSeq
+
+    }
+</script>
+</html>

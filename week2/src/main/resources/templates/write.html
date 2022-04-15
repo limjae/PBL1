@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>글쓰기</title>
+    <script src="https://kit.fontawesome.com/2d323a629b.js" crossorigin="anonymous"></script>
+    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro&display=swap" rel="stylesheet"/>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <!-- JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+            crossorigin="anonymous"></script>
+    <link rel="stylesheet" type="text/css" href="/css/common.css"/>
+    <style>
+        #wrap {
+            margin: auto;
+            width: 700px;
+        }
+
+
+
+
+    </style>
+</head>
+<body>
+<div class="jumbotron" style="text-align: center; background-color: #FFFFFF;">
+    <h1>글쓰기</h1>
+</div>
+
+<form id="boardForm" name="boardForm">
+    <table width="80%" class="table02 table-hover">
+        <tbody id="tbody">
+        <tr>
+            <th>제목<span class="t_red"></span></th>
+            <td><input id="board_subject" name="board_subject" value="" class="form-control"/></td>
+        </tr>
+        <tr>
+            <th>작성자<span class="t_red"></span></th>
+            <td><input id="board_writer" name="board_writer" value="" class="form-control"/></td>
+        </tr>
+        <tr>
+            <th>내용<span class="t_red"></span></th>
+            <td><textarea id="board_content" name="board_content" cols="100" rows="5" class="textarea01"></textarea>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</form>
+
+
+<div class="btn_right mt15">
+    <button type="button" class="btn btn-primary" onclick="location.href = '/' ">목록으로</button>
+    <button type="button" class="btn btn-primary" onclick="javascript:insertBoard();">등록하기</button>
+</div>
+
+<script type="text/javascript">
+
+
+
+    /** 게시판 - 목록 페이지 이동 */
+    function goBoardList(){
+        location.href = "/board/boardList";
+    }
+
+    /** 게시판 - 작성  */
+    function insertBoard(){
+
+        let title = $("#board_subject").val();
+        let username = $("#board_writer").val();
+        let contents = $("#board_content").val();
+
+        if (title == ""){
+            alert("제목을 입력해주세요.");
+            $("#board_subject").focus();
+            return;
+        }
+
+        if (username == ""){
+            alert("저자를 입력해주세요.");
+            $("#board_content").focus();
+            return;
+        }
+
+        if (contents == ""){
+            alert("내용을 입력해주세요.");
+            $("#board_content").focus();
+            return;
+        }
+
+            console.log(title,username,contents);
+            $.ajax({
+                type     : "POST",
+                url      : "/api/posting",
+                data     : JSON.stringify({'title':title, 'username':username, 'contents':contents}),
+                contentType: 'application/json',
+                success  : function(res) {
+                    location.href = '/';
+                },
+                error    : function(err) {
+                    alert("등록 실패");
+                }
+
+            });
+    }
+
+
+
+
+
+</script>
+</body>
+</html>

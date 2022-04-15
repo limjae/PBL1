@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>게시글 상세조회</title>
+
+    <script src="https://kit.fontawesome.com/2d323a629b.js" crossorigin="anonymous"></script>
+    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro&display=swap" rel="stylesheet"/>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <!-- JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+            crossorigin="anonymous"></script>
+    <link href="/css/main.css" rel="stylesheet">
+    <style>
+        #wrap {
+            margin: auto;
+            width: 400px;
+        }
+
+
+
+
+
+
+
+    </style>
+    <script th:inline="javascript">
+    /*<![CDATA[*/
+        var postingSeq = /*[[ ${postingSeq} ]]*/;
+    /*]]*/
+
+    function writeComment(){
+        let contents = $("#contents").val();
+
+        if (contents === ""){
+            alert("내용을 입력해주세요.");
+            $("#board_content").focus();
+            return;
+        }
+
+            $.ajax({
+                type     : "POST",
+                url      : "/api/comment/",
+                data     : JSON.stringify({'postingSeq':postingSeq,'contents':contents}),
+                contentType: 'application/json',
+                success  : function(res) {
+                    location.reload();
+                }
+            });
+
+    }
+
+    //쿼리스트링 찾기
+    function getUrlParams() {
+        let params = {};
+        window.location.search.replace(/[?&]+([^=&]+)=([^&]*)/gi,
+            function(str, key, value) {
+                params[key] = value;
+            }
+        );
+        return params;
+    }
+
+    // 댓글 수정가능하게 만들기
+    function editPost(commentSeq){
+        showEdits(commentSeq);
+        let contents = $(`#${commentSeq}-contents`).text().trim();
+        $(`#${commentSeq}-textarea`).val(contents);
+
+    }
+    function showEdits(commentSeq) {
+        $(`#${commentSeq}-editarea`).show();
+        $(`#${commentSeq}-submit`).show();
+        $(`#${commentSeq}-delete`).show();
+
+        $(`#${commentSeq}-contents`).hide();
+        $(`#${commentSeq}-edit`).hide();
+    }
+
+    //댓글 수정 서버로 보내기
+    function submitEdit(commentSeq){
+        let contents = $(`#${commentSeq}-textarea`).val();
+
+        if (contents === ""){
+            alert("내용을 입력해주세요.");
+            contents.focus();
+            return;
+        }
+
+        $.ajax({
+            type     : "PUT",
+            url      : "/api/comment/"+commentSeq,
+            data     : JSON.stringify({contents:contents}),
+            contentType: 'application/json',
+            success  : function(res) {
+                location.reload();
+            }
+        });
+    }
+
+    //댓글 삭제하기
+    function deleteOne(del){
+        $.ajax({
+            type     : "Delete",
+            url      : "/api/comment/"+del,
+            contentType: 'application/json',
+            success  : function(res) {
+                location.reload();
+            }
+        });
+    }
+
+    window.addEventListener("load",()=>{
+        let param = getUrlParams();
+        // 게시글 불러오기
+        $.ajax({
+            type: "GET",
+            url: "/api/posting/"+ postingSeq,
+            data: {},
+            success: function (response) {
+                console.log(response["title"]);
+                console.log(response);
+                    let title = response["title"];
+                    let username = response["username"];
+                    let contents = response["contents"];
+                    let modifiedAt = response["modifiedAt"];
+                    console.log(title);
+                    console.log(username);
+                    console.log(contents);
+                    let temp = `<tr>
+                                    <th><span class="t_red">제목</span></th>
+                                    <td><input id="board_subject" name="board_subject" value="${title}" class="form-control" readonly/></td>
+                                </tr>
+                                <tr>
+                                    <th><span class="t_red">작성일</span></th>
+                                    <td><input id="board_date" name="board_writer" value="${modifiedAt}" class="form-control" readonly/></td>
+                                </tr>
+                                <tr>
+                                    <th><span class="t_red">작성자</span></th>
+                                    <td><input id="board_writer" name="board_writer" value="${username}" class="form-control" readonly/></td>
+                                </tr>
+                                <tr>
+                                    <th>내용<span class="t_red"></span></th>
+                                    <td><textarea id="board_content" name="board_content"  cols="30" rows="5" class="form-control" readonly>${contents}</textarea></td>
+                                </tr>
+                                `
+                    $('#tbody').append(temp);
+
+            }
+        });
+
+        //댓글 불러오기
+        $.ajax({
+            type: "GET",
+            url: "/api/comment/"+ postingSeq,
+            data: {},
+            success: function (response) {
+                for (let i = 0; i < response.length; i++) {
+                    let commentSeq = response[i]["commentSeq"];
+                    let contents = response[i]["contents"];
+                    let commentDate = response[i]["modifiedAt"];
+
+                    let temp = `<div class="card">
+                                    <!-- date/username 영역 -->
+                                    <div class="metadata">
+                                        <div class="date">
+                                            ${commentDate}
+                                        </div>
+                                        <div id="${commentSeq}-username" class="username">
+                                        </div>
+                                    </div>
+                                    <!-- contents 조회/수정 영역-->
+                                    <div class="contents">
+                                        <div id="${commentSeq}-contents" class="text">${contents}
+                                        </div>
+                                        <div id="${commentSeq}-editarea" class="edit">
+                                            <textarea style="background-color: #eff2f3;" id="${commentSeq}-textarea" class="te-edit" cols="100" rows="5"></textarea>
+                                        </div>
+                                    </div>
+                                    <!-- 버튼 영역-->
+                                    <div class="footer">
+                                        <img id="${commentSeq}-edit" onclick="editPost(${commentSeq});" class="icon-start-edit" src="/images/edit.png" alt="">
+                                        <img id="${commentSeq}-delete" onclick="deleteOne(${commentSeq});" class="icon-delete" src="/images/delete.png" alt="">
+                                        <img id="${commentSeq}-submit" onclick="submitEdit(${commentSeq});" class="icon-end-edit" src="/images/done.png" alt="">
+                                    </div>
+                                </div>
+                                `
+                    $('#cards-box').append(temp);
+                    }
+                }
+        });
+    })
+
+
+
+
+
+
+    </script>
+</head>
+<body>
+<div class="jumbotron" style="text-align: center; background-color: #FFFFFF;">
+    <h1>게시글 내용 + 댓글</h1>
+</div>
+
+
+<form id="boardForm" name="boardForm">
+    <table width="80%" class="table02 table-hover">
+        <tbody id="tbody">
+
+        </tbody>
+    </table>
+</form>
+
+<div class="btn_right mt15" style="margin-bottom: 10px">
+    <button type="button" class="btn btn-primary" onclick="location.href = '/' ">목록으로</button>
+</div>
+
+<div style="margin: 20px 0px 0px 20px">
+    <h2 style="">댓글</h2>
+</div>
+<div class="area-write">
+        <textarea class="field" placeholder="댓글을 입력해보세요" name="contents" id="contents" cols="20" autofocus
+                  rows="10" style="background-color: #FFFFFF;"></textarea>
+    <!--            <button class="btn btn-danger" onclick="writePost()">작성하기</button>-->
+    <img src="/images/send.png" alt="" onclick="writeComment()">
+</div>
+<div id="cards-box" class="area-read">
+</div>
+
+</body>
+</html>
